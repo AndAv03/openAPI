@@ -1,10 +1,23 @@
+
 package bo.edu.ucb.pruebaEndpoints.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "DTO que representa un producto del inventario")
 public class ProductDto {
+    @Schema(description = "ID único del producto", example = "1")
     private int id;
+
+    @Schema(description = "Nombre del producto", example = "Hamburguesa Clásica")
     private String nombre;
+
+    @Schema(description = "Precio del producto", example = "25.0")
     private double precio;
+
+    @Schema(description = "Categoría del producto", example = "Plato Principal")
     private String categoria;
+
+    @Schema(description = "Cantidad disponible en stock", example = "15")
     private int stock;
 
     // Constructor vacío (necesario para deserializar JSON)

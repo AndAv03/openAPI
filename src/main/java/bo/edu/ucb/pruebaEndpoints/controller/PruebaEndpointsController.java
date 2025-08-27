@@ -1,92 +1,96 @@
 package bo.edu.ucb.pruebaEndpoints.controller;
+// LINK http://localhost:8080/swagger-ui.html
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import bo.edu.ucb.pruebaEndpoints.dto.ProductDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
+@RequestMapping("api/v1/product")
+@Tag(name = "Productos", description = "Operaciones sobre productos del inventario")
 public class PruebaEndpointsController {
 
-    // Endpoint que devuelve todo el inventario
-    @GetMapping("api/v1/product")
-    public List<Map<String, Object>> getProducts() {
-        return buildInventory();
+    // "Base de datos" en memoria
+    private static List<ProductDto> inventory = new ArrayList<>();
+
+    static {
+        inventory.add(new ProductDto(1, "Hamburguesa Clásica", 25.0, "Plato Principal", 15));
+        inventory.add(new ProductDto(2, "Jugo de Naranja Natural", 10.0, "Bebida", 30));
+        inventory.add(new ProductDto(3, "Cheesecake de Frutilla", 18.5, "Postre", 8));
+        inventory.add(new ProductDto(4, "Pizza Margarita",40.0,"Plato principal", 10));
+        inventory.add(new ProductDto(5,"Ensalada Cesar",22.0,"Entrada",12));
+        inventory.add(new ProductDto(6,"Cafe espresso",8.0,"Bebida",25 ));
     }
 
-    // Endpoint que devuelve un producto específico por su id
-    @GetMapping("api/v1/product/{id}")
-    public Map<String, Object> getProductById(@PathVariable int id) {
-        List<Map<String, Object>> productos = buildInventory();
+    // GET todos
 
-        for (Map<String, Object> producto : productos) {
-            if (producto.get("id").equals(id)) {
-                return producto;
+    @Operation(summary = "Obtener todos los productos", description = "Devuelve la lista completa de productos en el inventario")
+    @ApiResponse(responseCode = "200", description = "Lista de productos obtenida correctamente")
+    @GetMapping
+    public List<ProductDto> getProducts() {
+        return inventory;
+    }
+
+    // GET por ID
+
+    @Operation(summary = "Obtener producto por ID", description = "Devuelve un producto específico según su ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Producto encontrado"),
+        @ApiResponse(responseCode = "404", description = "Producto no encontrado")
+    })
+    @GetMapping("/{id}")
+    public ProductDto getProductById(@Parameter(description = "ID del producto a buscar") @PathVariable int id) {
+        return inventory.stream()
+                .filter(p -> p.getId() == id)
+                .findFirst()
+                .orElse(null);
+    }
+
+    // POST -> agregar producto
+
+    @Operation(summary = "Agregar un nuevo producto", description = "Agrega un producto al inventario")
+    @ApiResponse(responseCode = "201", description = "Producto agregado correctamente")
+    @PostMapping
+    public ProductDto addProduct(@RequestBody ProductDto newProduct) {
+        inventory.add(newProduct);
+        return newProduct;
+    }
+
+    // PUT -> actualizar producto
+
+    @Operation(summary = "Actualizar producto", description = "Actualiza los datos de un producto existente")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Producto actualizado correctamente"),
+        @ApiResponse(responseCode = "404", description = "Producto no encontrado")
+    })
+    @PutMapping("/{id}")
+    public ProductDto updateProduct(@Parameter(description = "ID del producto a actualizar") @PathVariable int id, @RequestBody ProductDto updatedProduct) {
+        for (int i = 0; i < inventory.size(); i++) {
+            if (inventory.get(i).getId() == id) {
+                inventory.set(i, updatedProduct);
+                return updatedProduct;
             }
         }
-
-        // Si no se encuentra el producto, devolvemos un mensaje
-        Map<String, Object> notFound = new HashMap<>();
-        notFound.put("error", "Producto con id " + id + " no encontrado");
-        return notFound;
+        return null;
     }
 
-    // Método privado que simula el inventario del restaurante
-    private List<Map<String, Object>> buildInventory() {
-        List<Map<String, Object>> list = new ArrayList<>();
+    // DELETE -> eliminar producto
 
-        Map<String, Object> p1 = new HashMap<>();
-        p1.put("id", 1);
-        p1.put("nombre", "Hamburguesa Clásica");
-        p1.put("precio", 25.0);
-        p1.put("categoria", "Plato Principal");
-        p1.put("stock", 15);
-        list.add(p1);
-
-        Map<String, Object> p2 = new HashMap<>();
-        p2.put("id", 2);
-        p2.put("nombre", "Jugo de Naranja Natural");
-        p2.put("precio", 10.0);
-        p2.put("categoria", "Bebida");
-        p2.put("stock", 30);
-        list.add(p2);
-
-        Map<String, Object> p3 = new HashMap<>();
-        p3.put("id", 3);
-        p3.put("nombre", "Cheesecake de Frutilla");
-        p3.put("precio", 18.5);
-        p3.put("categoria", "Postre");
-        p3.put("stock", 8);
-        list.add(p3);
-
-        Map<String, Object> p4 = new HashMap<>();
-        p4.put("id", 4);
-        p4.put("nombre", "Pizza Margarita");
-        p4.put("precio", 40.0);
-        p4.put("categoria", "Plato Principal");
-        p4.put("stock", 10);
-        list.add(p4);
-
-        Map<String, Object> p5 = new HashMap<>();
-        p5.put("id", 5);
-        p5.put("nombre", "Ensalada César");
-        p5.put("precio", 22.0);
-        p5.put("categoria", "Entrada");
-        p5.put("stock", 12);
-        list.add(p5);
-
-        Map<String, Object> p6 = new HashMap<>();
-        p6.put("id", 6);
-        p6.put("nombre", "Café Espresso");
-        p6.put("precio", 8.0);
-        p6.put("categoria", "Bebida");
-        p6.put("stock", 25);
-        list.add(p6);
-
-        return list;
+    @Operation(summary = "Eliminar producto", description = "Elimina un producto del inventario por su ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Producto eliminado"),
+        @ApiResponse(responseCode = "404", description = "Producto no encontrado")
+    })
+    @DeleteMapping("/{id}")
+    public String deleteProduct(@Parameter(description = "ID del producto a eliminar") @PathVariable int id) {
+        boolean removed = inventory.removeIf(p -> p.getId() == id);
+        return removed ? "Producto eliminado" : "Producto no encontrado";
     }
 }
