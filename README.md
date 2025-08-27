@@ -16,3 +16,7 @@ Clona el repositorio y corre:
 
 ```bash
 mvn spring-boot:run
+```
+
+## Link de OpenAPI con SwaggerUI
+http://localhost:8080/swagger-ui.html
